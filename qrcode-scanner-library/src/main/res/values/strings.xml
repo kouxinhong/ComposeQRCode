@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">QRCode Scanner Library</string>
+    <string name="scan_hint">将二维码放入框内即可自动扫描</string>
+    <string name="permission_required">需要相机权限</string>
+    <string name="permission_denied">相机权限被拒绝</string>
+</resources>

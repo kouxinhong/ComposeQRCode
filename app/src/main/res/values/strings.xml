@@ -1,0 +1,165 @@
+<resources>
+    <!-- 应用名称 -->
+    <string name="app_name">QR Code</string>
+    
+    <!-- 底部导航标签 -->
+    <string name="nav_generate">生成</string>
+    <string name="nav_scan">扫描</string>
+    <string name="nav_history">历史</string>
+    <string name="nav_settings">设置</string>
+    
+    <!-- 生成页面 -->
+    <string name="generate_title">生成二维码</string>
+    <string name="generate_hint">请输入内容</string>
+    <string name="generate_button">生成</string>
+    <string name="generate_save">保存</string>
+    <string name="generate_share">分享</string>
+    <string name="generate_style_select">选择样式</string>
+    <string name="generate_custom_style">自定义样式</string>
+    
+    <!-- 扫描页面 -->
+    <string name="scan_title">扫描二维码</string>
+    <string name="scan_permission_required">需要相机权限</string>
+    <string name="scan_permission_denied">相机权限被拒绝，请在设置中开启</string>
+    <string name="scan_open_settings">打开设置</string>
+    <string name="scan_result">扫描结果</string>
+    <string name="scan_copy">复制</string>
+    <string name="scan_open_url">打开链接</string>
+    <string name="scan_share">分享</string>
+    
+    <!-- 历史页面 -->
+    <string name="history_title">历史记录</string>
+    <string name="history_empty">暂无历史记录</string>
+    <string name="history_clear">清空</string>
+    <string name="history_delete">删除</string>
+    <string name="history_type_generated">已生成</string>
+    <string name="history_type_scanned">已扫描</string>
+    
+    <!-- 设置页面 -->
+    <string name="settings_title">设置</string>
+    <string name="settings_theme">主题</string>
+    <string name="settings_theme_light">浅色</string>
+    <string name="settings_theme_dark">深色</string>
+    <string name="settings_theme_system">跟随系统</string>
+    <string name="settings_sound">声音</string>
+    <string name="settings_vibration">振动</string>
+    <string name="settings_copy_auto">自动复制</string>
+    <string name="settings_save_history">保存历史记录</string>
+    <string name="settings_about">关于</string>
+    
+    <!-- 设置页面描述 -->
+    <string name="enable_dark_theme">开启深色主题模式</string>
+    <string name="play_sound_when_scan_complete">扫描完成时播放提示音</string>
+    <string name="vibrate_when_scan_complete">扫描完成时振动反馈</string>
+    <string name="auto_save_scan_history">自动保存扫描历史记录</string>
+    
+    <!-- 扫描页面 -->
+    <string name="scan_qr">扫描二维码</string>
+    <string name="camera_permission_required">需要相机权限</string>
+    <string name="allow">允许</string>
+    <string name="back">返回</string>
+    <string name="settings">设置</string>
+    <string name="copy">复制</string>
+    <string name="open_in_browser">在浏览器中打开</string>
+    <string name="generate_qr">生成二维码</string>
+    <string name="history">历史记录</string>
+    <string name="no_history">暂无历史记录</string>
+    
+    <!-- QRose样式配置 -->
+    <string name="qr_style_title">二维码样式</string>
+    <string name="qr_style_settings">二维码样式设置</string>
+    <string name="qr_style_basic">基础样式</string>
+    <string name="qr_style_circle">圆形样式</string>
+    <string name="qr_style_rounded">圆角样式</string>
+    <string name="qr_style_gradient">渐变样式</string>
+    <string name="qr_style_custom">自定义样式</string>
+    
+    <!-- 像素形状 -->
+    <string name="qr_pixel_shape">像素形状</string>
+    <string name="qr_pixel_square">方形</string>
+    <string name="qr_pixel_circle">圆形</string>
+    <string name="qr_pixel_rounded">圆角</string>
+    
+    <!-- 眼部形状 -->
+    <string name="qr_eye_shape">眼部形状</string>
+    <string name="qr_eye_square">方形</string>
+    <string name="qr_eye_circle">圆形</string>
+    <string name="qr_eye_rounded">圆角</string>
+    
+    <!-- 背景类型 -->
+    <string name="qr_background_type">背景类型</string>
+    <string name="qr_background_solid">纯色</string>
+    <string name="qr_background_linear">线性渐变</string>
+    <string name="qr_background_radial">径向渐变</string>
+    
+    <!-- 颜色设置 -->
+    <string name="qr_foreground_color">前景色</string>
+    <string name="qr_background_color">背景色</string>
+    <string name="qr_eye_color">眼部颜色</string>
+    <string name="qr_frame_color">边框颜色</string>
+    
+    <!-- Logo设置 -->
+    <string name="qr_logo">Logo</string>
+    <string name="qr_logo_select">选择Logo</string>
+    <string name="qr_logo_remove">移除Logo</string>
+    <string name="qr_logo_size">Logo大小</string>
+    
+    <!-- 数值设置 -->
+    <string name="qr_padding">内边距</string>
+    <string name="qr_size">尺寸</string>
+    <string name="qr_error_correction">容错级别</string>
+    <string name="qr_error_correction_low">低</string>
+    <string name="qr_error_correction_medium">中</string>
+    <string name="qr_error_correction_quartile">高</string>
+    <string name="qr_error_correction_high">极高</string>
+    
+    <!-- 样式预设 -->
+    <string name="qr_preset_business">商务</string>
+    <string name="qr_preset_artistic">艺术</string>
+    <string name="qr_preset_elegant">优雅</string>
+    <string name="qr_preset_vibrant">活力</string>
+    <string name="qr_preset_minimal">极简</string>
+    
+    <!-- 按钮文本 -->
+    <string name="button_apply">应用</string>
+    <string name="button_reset">重置</string>
+    <string name="reset">重置</string>
+    <string name="button_cancel">取消</string>
+    <string name="button_save">保存</string>
+    <string name="button_preview">预览</string>
+    
+    <!-- 提示信息 -->
+    <string name="toast_saved">已保存</string>
+    <string name="toast_copied">已复制到剪贴板</string>
+    <string name="toast_deleted">已删除</string>
+    <string name="toast_cleared">已清空</string>
+    <string name="toast_permission_granted">权限已授予</string>
+    <string name="toast_permission_denied">权限被拒绝</string>
+    
+    <!-- 错误信息 -->
+    <string name="error_empty_content">请输入内容</string>
+    <string name="error_save_failed">保存失败</string>
+    <string name="error_share_failed">分享失败</string>
+    <string name="error_generate_failed">生成失败</string>
+    <string name="error_invalid_url">无效的URL</string>
+    <string name="error_camera_error">相机错误</string>
+    
+    <!-- 其他 -->
+    <string name="loading">加载中...</string>
+    <string name="retry">重试</string>
+    <string name="close">关闭</string>
+    <string name="ok">确定</string>
+    
+    <!-- 新增缺失的字符串 -->
+    <string name="qr_code_content">二维码内容</string>
+    <string name="gradient_start_color">渐变起始色</string>
+    <string name="gradient_end_color">渐变结束色</string>
+    <string name="qr_corner_radius">像素圆角</string>
+    <string name="qr_eye_corner_radius">眼部圆角</string>
+    
+    <!-- 简化名称的字符串资源 -->
+    <string name="apply">应用</string>
+    <string name="pixel_shape">像素形状</string>
+    <string name="eye_shape">眼部形状</string>
+    <string name="background_type">背景类型</string>
+</resources>
