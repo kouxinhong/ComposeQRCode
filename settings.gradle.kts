@@ -29,3 +29,4 @@ dependencyResolutionManagement {
 rootProject.name = "QRCodeApp"
 include(":app")
 include(":qrcode-scanner-library")
+include(":qrcode-generator-library")

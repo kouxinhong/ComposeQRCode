@@ -1,49 +1,38 @@
 package com.qrcode.app.utils
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color as AndroidColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import io.github.alexzhirkevich.qrose.QrCodePainter
-import io.github.alexzhirkevich.qrose.rememberQrCodePainter
+import androidx.compose.ui.graphics.ImageBitmap
+import com.github.alexzhirkevich.customqrgenerator.QrData
+import com.github.alexzhirkevich.customqrgenerator.vector.QrCodeDrawable
+import com.github.alexzhirkevich.customqrgenerator.vector.createQrVectorOptions
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorColors
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorColor
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorShapes
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorPixelShape
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorBallShape
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorFrameShape
 
-/**
- * QRose Compose工具类
- * 提供二维码生成和样式处理功能
- */
 object QRoseComposeUtils {
 
-    /**
-     * 生成并记住二维码位图
-     * @param content 二维码内容
-     * @param style 二维码样式
-     * @param size 二维码尺寸
-     * @param foregroundColor 前景色（默认黑色）
-     * @param backgroundColor 背景色（默认白色）
-     * @return 二维码位图
-     */
     @Composable
     fun rememberQRCode(
         content: String,
         style: QRCodeStyle = QRCodeStyle.BASIC,
         size: Int = 200,
-        foregroundColor: Int = android.graphics.Color.BLACK,
-        backgroundColor: Int = android.graphics.Color.WHITE
+        foregroundColor: Int = AndroidColor.BLACK,
+        backgroundColor: Int = AndroidColor.WHITE
     ): ImageBitmap {
         return remember(content, style, size, foregroundColor, backgroundColor) {
             generateQRCodeBitmap(content, style, size, foregroundColor, backgroundColor)
         }
     }
 
-    /**
-     * 生成二维码位图
-     * @param content 二维码内容
-     * @param style 二维码样式
-     * @param size 二维码尺寸
-     * @param foregroundColor 前景色
-     * @param backgroundColor 背景色
-     * @return 二维码位图
-     */
     private fun generateQRCodeBitmap(
         content: String,
         style: QRCodeStyle,
@@ -51,17 +40,43 @@ object QRoseComposeUtils {
         foregroundColor: Int,
         backgroundColor: Int
     ): ImageBitmap {
-        // 使用QRose库生成基本二维码位图
-        val bitmap = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
-        val canvas = android.graphics.Canvas(bitmap)
+        val data = QrData.Text(content)
         
-        // 设置背景色
-        canvas.drawColor(backgroundColor)
+        val options = createQrVectorOptions {
+            padding = 0.1f
+            
+            colors {
+                dark = QrVectorColor.Solid(foregroundColor)
+                light = QrVectorColor.Solid(backgroundColor)
+            }
+            
+            shapes {
+                darkPixel = getPixelShape(style)
+                lightPixel = QrVectorPixelShape.Default
+                ball = QrVectorBallShape.RoundCorners(0.25f)
+                frame = QrVectorFrameShape.RoundCorners(0.25f)
+            }
+        }
+
+        val drawable = QrCodeDrawable(data, options)
         
-        // 这里使用QRose库的API生成二维码
-        // 由于QRose库的具体API需要查看文档，这里先使用基本实现
-        // 实际项目中应该使用QRose库提供的二维码生成方法
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
         
+        drawable.setBounds(0, 0, size, size)
+        drawable.draw(canvas)
+
         return bitmap.asImageBitmap()
+    }
+
+    private fun getPixelShape(style: QRCodeStyle): QrVectorPixelShape {
+        return when (style) {
+            QRCodeStyle.BASIC -> QrVectorPixelShape.Default
+            QRCodeStyle.CIRCLE -> QrVectorPixelShape.Circle()
+            QRCodeStyle.ROUNDED -> QrVectorPixelShape.RoundCorners(0.5f)
+            QRCodeStyle.GRADIENT -> QrVectorPixelShape.Default
+            QRCodeStyle.ARTISTIC -> QrVectorPixelShape.Circle()
+            QRCodeStyle.DOT -> QrVectorPixelShape.Circle()
+        }
     }
 }

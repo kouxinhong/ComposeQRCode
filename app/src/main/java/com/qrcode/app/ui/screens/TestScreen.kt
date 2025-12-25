@@ -16,7 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.alexzhirkevich.qrose.rememberQrCodePainter
+import com.qrcode.app.utils.QRoseComposeUtils
 
 @Composable
 fun TestScreen() {
@@ -94,10 +94,10 @@ fun BasicQrCodeView(
     data: String,
     modifier: Modifier = Modifier
 ) {
-    // 只使用最基本的rememberQrCodePainter，不添加任何自定义样式
-    val qrPainter = rememberQrCodePainter(data = data)
+    // 使用QRoseComposeUtils生成基本二维码
+    val qrBitmap = QRoseComposeUtils.rememberQRCode(content = data)
     Image(
-        painter = qrPainter,
+        bitmap = qrBitmap,
         contentDescription = "二维码",
         modifier = modifier
     )

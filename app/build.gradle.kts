@@ -67,11 +67,14 @@ dependencies {
     // QR Code Scanner Library
     implementation(project(":qrcode-scanner-library"))
     
+    // QR Code Generator Library
+    implementation(project(":qrcode-generator-library"))
+    
     // Permission handling for scanner library
     implementation(libs.accompanist.permissions)
     
-    // QR Code generation - QRose (样式化二维码生成)
-    implementation(libs.qrose)
+    // QR Code generation - custom-qr-generator (样式化二维码生成)
+    implementation("com.github.alexzhirkevich:custom-qr-generator:1.6.2")
     
     // Image loading
     implementation(libs.coil.compose)

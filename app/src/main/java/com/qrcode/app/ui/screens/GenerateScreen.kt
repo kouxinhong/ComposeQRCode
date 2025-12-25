@@ -25,8 +25,9 @@ import com.qrcode.app.R
 import com.qrcode.app.model.QRoseStyleConfig
 import com.qrcode.app.model.StylePreset
 import com.qrcode.app.ui.components.QRoseStyleDialog
-import io.github.alexzhirkevich.qrose.QrCodePainter
-import io.github.alexzhirkevich.qrose.rememberQrCodePainter
+import com.qrcode.app.utils.QRoseComposeUtils
+import com.qrcode.app.utils.QRCodeStyle
+import com.qrcode.generator.models.ShapePreset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -301,15 +302,23 @@ private fun QRCodeDisplaySection(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             
-            // 使用QRose库的原生API生成二维码，并应用样式配置
-            val qrPainter = rememberQrCodePainter(data = content)
+            val qrBitmap = QRoseComposeUtils.rememberQRCode(
+                content = content,
+                style = when {
+                    config.pixelShape == com.qrcode.app.model.PixelShape.CIRCLE && 
+                    config.eyeShape == com.qrcode.app.model.EyeShape.CIRCLE -> QRCodeStyle.ARTISTIC
+                    config.pixelShape == com.qrcode.app.model.PixelShape.ROUNDED -> QRCodeStyle.ROUNDED
+                    else -> QRCodeStyle.BASIC
+                },
+                size = 200
+            )
             
             Card(
                 modifier = Modifier.size(200.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Image(
-                    painter = qrPainter,
+                    bitmap = qrBitmap,
                     contentDescription = stringResource(R.string.qr_style_title),
                     modifier = Modifier.fillMaxSize()
                 )

@@ -42,7 +42,8 @@ sealed class ScanResult : Parcelable {
 
     override fun describeContents(): Int = 0
 
-    companion object CREATOR : Parcelable.Creator<ScanResult> {
+    @JvmField
+    val CREATOR = object : Parcelable.Creator<ScanResult> {
         override fun createFromParcel(parcel: Parcel): ScanResult {
             return when (parcel.readInt()) {
                 0 -> Success(parcel.readString() ?: "")
