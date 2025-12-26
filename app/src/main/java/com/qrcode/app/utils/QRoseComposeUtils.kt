@@ -33,6 +33,17 @@ object QRoseComposeUtils {
         }
     }
 
+    @Composable
+    fun rememberQRCode(
+        content: String,
+        style: QRCodeStyle = QRCodeStyle.BASIC,
+        size: Int = 200
+    ): ImageBitmap {
+        return remember(content, style, size) {
+            generateQRCodeBitmap(content, style, size, AndroidColor.BLACK, AndroidColor.WHITE)
+        }
+    }
+
     private fun generateQRCodeBitmap(
         content: String,
         style: QRCodeStyle,
@@ -53,8 +64,8 @@ object QRoseComposeUtils {
             shapes {
                 darkPixel = getPixelShape(style)
                 lightPixel = QrVectorPixelShape.Default
-                ball = QrVectorBallShape.RoundCorners(0.25f)
-                frame = QrVectorFrameShape.RoundCorners(0.25f)
+                ball = getBallShape(style)
+                frame = getFrameShape(style)
             }
         }
 
@@ -77,6 +88,28 @@ object QRoseComposeUtils {
             QRCodeStyle.GRADIENT -> QrVectorPixelShape.Default
             QRCodeStyle.ARTISTIC -> QrVectorPixelShape.Circle()
             QRCodeStyle.DOT -> QrVectorPixelShape.Circle()
+            QRCodeStyle.RHOMBUS -> QrVectorPixelShape.Rhombus()
+            QRCodeStyle.STAR -> QrVectorPixelShape.Star
+            QRCodeStyle.ROUNDED_VERTICAL -> QrVectorPixelShape.RoundCornersVertical()
+            QRCodeStyle.ROUNDED_HORIZONTAL -> QrVectorPixelShape.RoundCornersHorizontal()
+            else -> QrVectorPixelShape.Default
+        }
+    }
+
+    private fun getBallShape(style: QRCodeStyle): QrVectorBallShape {
+        return when (style) {
+            QRCodeStyle.CIRCLE_BALL -> QrVectorBallShape.Circle(1f)
+            QRCodeStyle.ROUNDED_BALL -> QrVectorBallShape.RoundCorners(0.25f)
+            QRCodeStyle.RHOMBUS_BALL -> QrVectorBallShape.Rhombus()
+            else -> QrVectorBallShape.RoundCorners(0.25f)
+        }
+    }
+
+    private fun getFrameShape(style: QRCodeStyle): QrVectorFrameShape {
+        return when (style) {
+            QRCodeStyle.CIRCLE_FRAME -> QrVectorFrameShape.Circle(1f, 1f)
+            QRCodeStyle.ROUNDED_FRAME -> QrVectorFrameShape.RoundCorners(0.25f, 1f)
+            else -> QrVectorFrameShape.RoundCorners(0.25f, 1f)
         }
     }
 }
