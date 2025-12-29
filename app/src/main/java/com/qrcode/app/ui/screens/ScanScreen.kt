@@ -63,7 +63,12 @@ fun ScanScreen(
                 onScanResult = { result ->
                     when (result) {
                         is ScanResult.Success -> {
-                            onScanResult(URLEncoder.encode(result.content, "UTF-8"))
+                            val decodedContent = try {
+                                String(result.content.toByteArray(Charsets.ISO_8859_1), Charsets.UTF_8)
+                            } catch (e: Exception) {
+                                result.content
+                            }
+                            onScanResult(decodedContent)
                         }
                         is ScanResult.Cancelled -> {
                             // 扫描取消，不做处理

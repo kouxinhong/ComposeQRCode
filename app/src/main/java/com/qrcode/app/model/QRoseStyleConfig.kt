@@ -1,5 +1,6 @@
 package com.qrcode.app.model
 
+import android.graphics.Bitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -10,132 +11,241 @@ import android.graphics.Color as AndroidColor
  * 包含所有可自定义的样式选项
  */
 data class QRoseStyleConfig(
-    // 基础设置
-    val size: Int = 512,
+    /**
+     * 基础设置
+     */
+    val size: Int = 256,
     val padding: Float = 0.1f,
     val errorCorrectionLevel: ErrorCorrectionLevel = ErrorCorrectionLevel.MEDIUM,
-    
-    // 像素形状
-    val pixelShape: PixelShape = PixelShape.SQUARE,
-    val pixelColor: Color = Color(AndroidColor.BLACK),
-    val pixelCornerRadius: Float = 0.2f,
-    
-    // 眼部设置
-    val eyeShape: EyeShape = EyeShape.SQUARE,
-    val eyeColor: Color = Color(AndroidColor.BLACK),
-    val eyeCornerRadius: Float = 0.2f,
-    val eyeFrameColor: Color = Color(AndroidColor.BLACK),
-    
-    // 背景设置
-    val backgroundColor: Color = Color(AndroidColor.WHITE),
+
+    /**
+     * 暗像素颜色（前景色）
+     */
+    val darkPixelColor: Color = Color.Black,
+    val darkPixelGradientColors: List<Color> = listOf(Color.Black),
+    val darkPixelGradientAngle: Float = 0f,
+    val isDarkPixelGradient: Boolean = false,
+
+    /**
+     * 亮像素颜色（背景色）
+     */
+    val lightPixelColor: Color = Color.White,
+    val lightPixelGradientColors: List<Color> = listOf(Color.White),
+    val lightPixelGradientAngle: Float = 0f,
+    val isLightPixelGradient: Boolean = false,
+
+    /**
+     * 背景设置（用于外部背景，非二维码数据区域）
+     */
+    val backgroundColor: Color = Color.White,
     val backgroundType: BackgroundType = BackgroundType.SOLID,
-    val gradientStartColor: Color = Color(AndroidColor.WHITE),
-    val gradientEndColor: Color = Color(AndroidColor.WHITE),
-    val gradientAngle: Float = 0f,
-    
-    // Logo设置
-    val logoData: String? = null,
+    val backgroundGradientColors: List<Color> = listOf(Color.White),
+    val backgroundGradientAngle: Float = 0f,
+    val isBackgroundGradient: Boolean = false,
+
+    /**
+     * 眼部样式（Ball）
+     */
+    val ballShape: BallShape = BallShape.DEFAULT,
+    val ballColor: Color = Color.Black,
+    val ballCornerRadius: Float = 0f,
+    val ballGradientColors: List<Color> = listOf(Color.Black),
+    val ballGradientAngle: Float = 0f,
+    val isBallGradient: Boolean = false,
+
+    /**
+     * 眼部边框样式（Eye Frame）
+     */
+    val frameShape: FrameShape = FrameShape.DEFAULT,
+    val frameColor: Color = Color.Black,
+    val frameWidth: Float = 0f,
+    val frameCornerRadius: Float = 0f,
+
+    /**
+     * 像素样式（Dark Pixel）
+     */
+    val pixelShape: PixelShape = PixelShape.DEFAULT,
+    val pixelCornerRadius: Float = 0f,
+    val pixelGradientColors: List<Color> = listOf(Color.Black),
+    val pixelGradientAngle: Float = 0f,
+    val isPixelGradient: Boolean = false,
+
+    /**
+     * Logo设置
+     */
+    val logoBitmap: Bitmap? = null,
     val logoSize: Float = 0.2f,
-    val logoPadding: Float = 0.05f,
-    val logoCornerRadius: Float = 0.1f,
+    val logoPadding: Float = 0.1f,
     val logoShape: LogoShape = LogoShape.SQUARE,
-    
-    // 高级设置
-    val frameColor: Color = Color(AndroidColor.BLACK),
-    val frameWidth: Float = 0.02f,
+    val logoCornerRadius: Float = 0f,
+    val logoBackgroundColor: Color? = null,
+
+    /**
+     * 边框设置（外部边框）
+     */
+    val outerBorderColor: Color = Color.Black,
+    val outerBorderWidth: Float = 0f,
+    val outerBorderCornerRadius: Float = 0f,
+
+    /**
+     * 高级设置
+     */
     val isInverted: Boolean = false,
     val transparency: Float = 1f
 ) {
     companion object {
         val DEFAULT = QRoseStyleConfig()
-        
+
         val BUSINESS = QRoseStyleConfig(
-            pixelShape = PixelShape.SQUARE,
-            pixelColor = Color(0xFF1976D2),
-            eyeColor = Color(0xFF1976D2),
-            backgroundColor = Color(AndroidColor.WHITE)
+            darkPixelColor = Color(0xFF0D47A1),
+            lightPixelColor = Color.White,
+            backgroundColor = Color.White,
+            ballColor = Color(0xFF0D47A1),
+            ballShape = BallShape.DEFAULT,
+            frameShape = FrameShape.ROUNDED_CORNERS,
+            pixelShape = PixelShape.DEFAULT,
+            errorCorrectionLevel = ErrorCorrectionLevel.MEDIUM
         )
-        
+
         val ARTISTIC = QRoseStyleConfig(
-            pixelShape = PixelShape.CIRCLE,
-            pixelColor = Color(0xFFE91E63),
-            eyeShape = EyeShape.CIRCLE,
-            eyeColor = Color(0xFFE91E63),
-            backgroundType = BackgroundType.LINEAR_GRADIENT,
-            gradientStartColor = Color(0xFFFCE4EC),
-            gradientEndColor = Color(0xFFF8BBD9)
+            darkPixelColor = Color(0xFFC2185B),
+            lightPixelColor = Color.White,
+            backgroundColor = Color.White,
+            ballColor = Color(0xFFC2185B),
+            ballShape = BallShape.CIRCLE,
+            frameShape = FrameShape.ROUNDED_CORNERS,
+            pixelShape = PixelShape.DEFAULT,
+            errorCorrectionLevel = ErrorCorrectionLevel.QUARTILE
         )
-        
+
         val ELEGANT = QRoseStyleConfig(
-            pixelShape = PixelShape.ROUNDED,
-            pixelColor = Color(0xFF424242),
-            eyeShape = EyeShape.ROUNDED,
-            eyeColor = Color(0xFF424242),
-            backgroundColor = Color(0xFFF5F5F5),
-            pixelCornerRadius = 0.4f,
-            eyeCornerRadius = 0.4f
+            darkPixelColor = Color(0xFF212121),
+            lightPixelColor = Color.White,
+            backgroundColor = Color.White,
+            ballColor = Color(0xFF212121),
+            ballShape = BallShape.ROUNDED_CORNERS,
+            frameShape = FrameShape.ROUNDED_CORNERS,
+            pixelShape = PixelShape.ROUNDED_CORNERS,
+            pixelCornerRadius = 0.3f,
+            ballCornerRadius = 0.3f,
+            errorCorrectionLevel = ErrorCorrectionLevel.MEDIUM
         )
-        
+
         val VIBRANT = QRoseStyleConfig(
-            pixelShape = PixelShape.CIRCLE,
-            pixelColor = Color(0xFFFF5722),
-            eyeShape = EyeShape.CIRCLE,
-            eyeColor = Color(0xFFFF5722),
-            backgroundType = BackgroundType.RADIAL_GRADIENT,
-            gradientStartColor = Color(0xFFFFF3E0),
-            gradientEndColor = Color(0xFFFFE0B2)
+            darkPixelColor = Color(0xFFE64A19),
+            lightPixelColor = Color.White,
+            backgroundColor = Color.White,
+            ballColor = Color(0xFFE64A19),
+            ballShape = BallShape.CIRCLE,
+            frameShape = FrameShape.ROUNDED_CORNERS,
+            pixelShape = PixelShape.DEFAULT,
+            errorCorrectionLevel = ErrorCorrectionLevel.QUARTILE
         )
-        
+
         val MINIMAL = QRoseStyleConfig(
-            pixelShape = PixelShape.SQUARE,
-            pixelColor = Color(AndroidColor.BLACK),
-            eyeColor = Color(AndroidColor.BLACK),
-            backgroundColor = Color(AndroidColor.WHITE),
-            padding = 0.15f
+            darkPixelColor = Color.Black,
+            lightPixelColor = Color.White,
+            backgroundColor = Color.White,
+            padding = 0.15f,
+            ballShape = BallShape.DEFAULT,
+            frameShape = FrameShape.DEFAULT,
+            pixelShape = PixelShape.DEFAULT,
+            errorCorrectionLevel = ErrorCorrectionLevel.MEDIUM
+        )
+
+        val RAINBOW = QRoseStyleConfig(
+            darkPixelGradientColors = listOf(
+                Color(0xFF1565C0),
+                Color(0xFF2E7D32),
+                Color(0xFF6A1B9A)
+            ),
+            darkPixelGradientAngle = 45f,
+            isDarkPixelGradient = true,
+            lightPixelColor = Color.White,
+            backgroundColor = Color.White,
+            ballShape = BallShape.DEFAULT,
+            frameShape = FrameShape.ROUNDED_CORNERS,
+            pixelShape = PixelShape.DEFAULT,
+            errorCorrectionLevel = ErrorCorrectionLevel.HIGH
+        )
+
+        val NEON = QRoseStyleConfig(
+            darkPixelColor = Color(0xFF00E676),
+            lightPixelColor = Color.White,
+            backgroundColor = Color.White,
+            ballColor = Color(0xFF00E676),
+            ballShape = BallShape.DEFAULT,
+            frameShape = FrameShape.ROUNDED_CORNERS,
+            pixelShape = PixelShape.DEFAULT,
+            errorCorrectionLevel = ErrorCorrectionLevel.HIGH
         )
     }
 }
 
+/**
+ * 眼部（Ball）形状枚举
+ */
+enum class BallShape {
+    DEFAULT,
+    CIRCLE,
+    ROUNDED_CORNERS,
+    VERTICAL,
+    HORIZONTAL,
+    ARC
+}
+
+/**
+ * 框架（Frame）形状枚举
+ */
+enum class FrameShape {
+    DEFAULT,
+    ROUNDED_CORNERS,
+    ROUNDED_VERTICAL,
+    ROUNDED_HORIZONTAL
+}
+
+/**
+ * 像素形状枚举
+ */
 enum class PixelShape {
-    SQUARE,     // 方形
-    CIRCLE,     // 圆形
-    ROUNDED,    // 圆角
-    DIAMOND,    // 菱形
-    STAR,       // 星形
-    HEART,      // 心形
-    CUSTOM      // 自定义
+    DEFAULT,
+    CIRCLE,
+    ROUNDED_CORNERS,
+    ARC,
+    VERTICAL,
+    HORIZONTAL,
+    DIAMOND
 }
 
-enum class EyeShape {
-    SQUARE,     // 方形
-    CIRCLE,     // 圆形
-    ROUNDED,    // 圆角
-    DIAMOND,    // 菱形
-    CUSTOM      // 自定义
-}
-
+/**
+ * 背景类型枚举
+ */
 enum class BackgroundType {
-    SOLID,              // 纯色
-    LINEAR_GRADIENT,    // 线性渐变
-    RADIAL_GRADIENT,    // 径向渐变
-    SWEEP_GRADIENT,     // 扫描渐变
-    IMAGE,              // 图片背景
-    TRANSPARENT         // 透明
+    SOLID,
+    LINEAR_GRADIENT,
+    RADIAL_GRADIENT,
+    IMAGE,
+    TRANSPARENT
 }
 
+/**
+ * Logo形状枚举
+ */
 enum class LogoShape {
-    SQUARE,     // 方形
-    CIRCLE,     // 圆形
-    ROUNDED,    // 圆角
-    DIAMOND,    // 菱形
-    CUSTOM      // 自定义
+    SQUARE,
+    CIRCLE,
+    ROUNDED_CORNERS,
+    DIAMOND
 }
 
+/**
+ * 纠错级别枚举
+ */
 enum class ErrorCorrectionLevel {
-    LOW,        // 低 (7%)
-    MEDIUM,     // 中 (15%)
-    QUARTILE,   // 高 (25%)
-    HIGH        // 极高 (30%)
+    LOW,
+    MEDIUM,
+    QUARTILE,
+    HIGH
 }
 
 /**
@@ -160,5 +270,7 @@ sealed class StylePreset {
     data object Elegant : StylePreset()
     data object Vibrant : StylePreset()
     data object Minimal : StylePreset()
+    data object Rainbow : StylePreset()
+    data object Neon : StylePreset()
     data class Custom(val config: QRoseStyleConfig) : StylePreset()
 }

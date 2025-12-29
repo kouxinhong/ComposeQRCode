@@ -1,21 +1,68 @@
 package com.qrcode.app.ui.screens
 
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Style
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
@@ -25,26 +72,38 @@ import com.qrcode.app.R
 import com.qrcode.app.model.QRoseStyleConfig
 import com.qrcode.app.model.StylePreset
 import com.qrcode.app.ui.components.QRoseStyleDialog
+import com.qrcode.app.ui.components.StylePreviewCard
 import com.qrcode.app.utils.QRoseComposeUtils
-import com.qrcode.app.utils.QRCodeStyle
-import com.qrcode.generator.models.ShapePreset
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenerateScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    content: String = ""
 ) {
-    var content by remember { mutableStateOf("") }
+    var inputContent by remember { mutableStateOf(content) }
+    var currentConfig by remember { mutableStateOf(QRoseStyleConfig.DEFAULT.copy(
+        darkPixelColor = Color(0xFF000000),  // 纯黑色
+        lightPixelColor = Color(0xFFFFFFFF),  // 纯白色
+        backgroundColor = Color(0xFFF5F5F5)   // 浅灰色背景
+    )) }
+    var selectedPreset by remember { mutableStateOf<StylePreset?>(null) }
     var showStyleDialog by remember { mutableStateOf(false) }
-    var currentConfig by remember { mutableStateOf(QRoseStyleConfig.DEFAULT) }
-    var selectedStyle by remember { mutableStateOf<QRCodeStyle>(QRCodeStyle.BASIC) }
-    var showSaveDialog by remember { mutableStateOf(false) }
-    var showShareDialog by remember { mutableStateOf(false) }
-    
+    var isGenerating by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    val qrBitmap = QRoseComposeUtils.rememberQRCode(
+        content = inputContent,
+        config = currentConfig,
+        onGenerating = { isGenerating = it }
+    )
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { 
+                title = {
                     Text(
                         stringResource(R.string.generate_title),
                         style = MaterialTheme.typography.titleLarge,
@@ -54,110 +113,222 @@ fun GenerateScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = stringResource(R.string.close),
-                            modifier = Modifier.size(24.dp)
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.close)
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = {
+                        if (inputContent.isNotBlank()) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("已刷新二维码")
+                            }
+                        }
+                    }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "刷新")
+                    }
+                },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // 欢迎标题
-            WelcomeSection()
-            
-            // 内容输入区域
-            ContentInputSection(
-                content = content,
-                onContentChanged = { content = it }
-            )
-            
-            // 样式选择区域
-            StyleSelectionSection(
-                selectedStyle = selectedStyle,
-                onStyleSelected = { selectedStyle = it },
-                onCustomizeClick = { showStyleDialog = true }
-            )
-            
-            // 二维码显示区域
-            if (content.isNotBlank()) {
-                QRCodeDisplaySection(
-                    content = content,
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                QRCodePreviewSection(
+                    bitmap = qrBitmap,
+                    isGenerating = isGenerating,
                     config = currentConfig,
-                    selectedStyle = selectedStyle,
-                    onSaveClick = { showSaveDialog = true },
-                    onShareClick = { showShareDialog = true }
+                    inputContent = inputContent,
+                    onStyleClick = { showStyleDialog = true }
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                ContentInputSection(
+                    content = inputContent,
+                    onContentChanged = { inputContent = it }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                PresetSelectorSection(
+                    selectedPreset = selectedPreset,
+                    currentConfig = currentConfig,
+                    onPresetSelected = { preset ->
+                        selectedPreset = preset
+                        currentConfig = when (preset) {
+                            is StylePreset.Business -> QRoseStyleConfig.BUSINESS
+                            is StylePreset.Artistic -> QRoseStyleConfig.ARTISTIC
+                            is StylePreset.Elegant -> QRoseStyleConfig.ELEGANT
+                            is StylePreset.Vibrant -> QRoseStyleConfig.VIBRANT
+                            is StylePreset.Minimal -> QRoseStyleConfig.MINIMAL
+                            is StylePreset.Rainbow -> QRoseStyleConfig.RAINBOW
+                            is StylePreset.Neon -> QRoseStyleConfig.NEON
+                            is StylePreset.Custom -> preset.config
+                        }
+                    },
+                    onCustomizeClick = { showStyleDialog = true }
                 )
             }
         }
     }
-    
-    // 样式自定义对话框
+
     if (showStyleDialog) {
         QRoseStyleDialog(
             onDismiss = { showStyleDialog = false },
-            onStyleSelected = { 
-                currentConfig = it
-                showStyleDialog = false 
+            onStyleSelected = { config ->
+                currentConfig = config
+                selectedPreset = null
+                showStyleDialog = false
+                scope.launch {
+                    snackbarHostState.showSnackbar("样式已更新")
+                }
             },
             initialConfig = currentConfig
-        )
-    }
-    
-    // 保存确认对话框
-    if (showSaveDialog) {
-        SaveConfirmDialog(
-            onDismiss = { showSaveDialog = false },
-            onConfirm = {
-                // TODO: 实现保存功能
-                showSaveDialog = false
-            }
-        )
-    }
-    
-    // 分享对话框
-    if (showShareDialog) {
-        ShareDialog(
-            onDismiss = { showShareDialog = false },
-            onShare = { method ->
-                // TODO: 实现分享功能
-                showShareDialog = false
-            }
         )
     }
 }
 
 @Composable
-private fun WelcomeSection() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
+private fun QRCodePreviewSection(
+    bitmap: ImageBitmap,
+    isGenerating: Boolean,
+    config: QRoseStyleConfig,
+    inputContent: String,
+    onStyleClick: () -> Unit
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (isGenerating) 0.95f else 1f,
+        animationSpec = tween(150),
+        label = "qr_scale"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable(onClick = onStyleClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
-        Text(
-            text = "创建个性化二维码",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = "输入内容，选择样式，生成专属二维码",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(240.dp)
+                    .scale(scale)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(getBackgroundBrush(config))
+                    .border(
+                        width = 2.dp,
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)
+                            )
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                android.util.Log.d("GenerateScreen", "QRCodePreviewSection: inputContent='$inputContent', isGenerating=$isGenerating, bitmap=${bitmap.width}x${bitmap.height}, background=${config.backgroundColor}")
+                if (!isGenerating && bitmap.width > 1) {
+                    // 显示QR码，确保合适的尺寸
+                    Image(
+                        bitmap = bitmap,
+                        contentDescription = "二维码预览",
+                        modifier = Modifier
+                            .size(200.dp)  // 固定尺寸确保可见
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                } else if (!isGenerating) {
+                    // 显示调试信息
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            Icons.Default.Warning,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "位图异常: ${bitmap.width}x${bitmap.height}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "输入内容: '$inputContent'",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                if (isGenerating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(48.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                if (inputContent.isBlank()) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "输入内容生成二维码",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "点击自定义样式",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
     }
 }
 
@@ -168,13 +339,14 @@ private fun ContentInputSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -188,60 +360,76 @@ private fun ContentInputSection(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = stringResource(R.string.generate_hint),
+                    text = stringResource(R.string.qr_code_content),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
             }
-            
+
             OutlinedTextField(
                 value = content,
                 onValueChange = onContentChanged,
-                label = { Text(stringResource(R.string.qr_code_content)) },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = false,
-                maxLines = 4,
-                placeholder = { 
+                placeholder = {
                     Text(
                         stringResource(R.string.generate_hint),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     )
                 },
-                colors = OutlinedTextFieldDefaults.colors(
+                maxLines = 3,
+                shape = RoundedCornerShape(12.dp),
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                ),
-                shape = MaterialTheme.shapes.medium
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                )
             )
+
+            if (content.isNotBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "字符数: ${content.length}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun StyleSelectionSection(
-    selectedStyle: QRCodeStyle,
-    onStyleSelected: (QRCodeStyle) -> Unit,
+private fun PresetSelectorSection(
+    selectedPreset: StylePreset?,
+    currentConfig: QRoseStyleConfig,
+    onPresetSelected: (StylePreset) -> Unit,
     onCustomizeClick: () -> Unit
 ) {
+    val presets = listOf(
+        StylePreset.Business to "商务",
+        StylePreset.Artistic to "艺术",
+        StylePreset.Elegant to "优雅",
+        StylePreset.Vibrant to "活力",
+        StylePreset.Minimal to "极简",
+        StylePreset.Rainbow to "彩虹",
+        StylePreset.Neon to "霓虹"
+    )
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.Style,
                         contentDescription = null,
@@ -250,314 +438,48 @@ private fun StyleSelectionSection(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.qr_style_title),
+                        text = "选择样式",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                 }
-                
+
                 FilledTonalButton(
                     onClick = onCustomizeClick,
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Icon(
                         Icons.Default.Tune,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(stringResource(R.string.generate_custom_style))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("自定义", style = MaterialTheme.typography.labelMedium)
                 }
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // 预设样式网格 - 基于custom-qr-generator的所有可用形状
-            val styleItems = listOf(
-                "基础" to QRCodeStyle.BASIC,
-                "圆形" to QRCodeStyle.CIRCLE,
-                "圆角" to QRCodeStyle.ROUNDED,
-                "渐变" to QRCodeStyle.GRADIENT,
-                "艺术" to QRCodeStyle.ARTISTIC,
-                "点阵" to QRCodeStyle.DOT,
-                "菱形" to QRCodeStyle.RHOMBUS,
-                "星形" to QRCodeStyle.STAR,
-                "垂直圆角" to QRCodeStyle.ROUNDED_VERTICAL,
-                "水平圆角" to QRCodeStyle.ROUNDED_HORIZONTAL,
-                "圆形框架" to QRCodeStyle.CIRCLE_FRAME,
-                "圆角框架" to QRCodeStyle.ROUNDED_FRAME,
-                "圆形眼球" to QRCodeStyle.CIRCLE_BALL,
-                "圆角眼球" to QRCodeStyle.ROUNDED_BALL,
-                "菱形眼球" to QRCodeStyle.RHOMBUS_BALL
-            )
-            
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.heightIn(min = 200.dp, max = 400.dp)
-            ) {
-                items(styleItems) { (name, style) ->
-                    StyleCard(
-                        name = name,
-                        style = style,
-                        isSelected = selectedStyle == style,
-                        onClick = { onStyleSelected(style) }
-                    )
-                }
-            }
-        }
-    }
-}
 
-@Composable
-private fun StyleCard(
-    name: String,
-    style: QRCodeStyle,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val colors = when (style) {
-        QRCodeStyle.BASIC -> Color(0xFF000000)
-        QRCodeStyle.CIRCLE -> Color(0xFF1976D2)
-        QRCodeStyle.ROUNDED -> Color(0xFF424242)
-        QRCodeStyle.GRADIENT -> Color(0xFF9C27B0)
-        QRCodeStyle.ARTISTIC -> Color(0xFFE91E63)
-        QRCodeStyle.DOT -> Color(0xFF00BCD4)
-        QRCodeStyle.RHOMBUS -> Color(0xFF4CAF50)
-        QRCodeStyle.STAR -> Color(0xFFFFC107)
-        QRCodeStyle.ROUNDED_VERTICAL -> Color(0xFF607D8B)
-        QRCodeStyle.ROUNDED_HORIZONTAL -> Color(0xFF795548)
-        QRCodeStyle.CIRCLE_FRAME -> Color(0xFF2196F3)
-        QRCodeStyle.ROUNDED_FRAME -> Color(0xFF607D8B)
-        QRCodeStyle.CIRCLE_BALL -> Color(0xFFF44336)
-        QRCodeStyle.ROUNDED_BALL -> Color(0xFF9E9E9E)
-        QRCodeStyle.RHOMBUS_BALL -> Color(0xFF4CAF50)
-    }
-    
-    Card(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
-        ),
-        border = if (isSelected) {
-                CardDefaults.outlinedCardBorder(true).copy(
-                    width = 3.dp, 
-                    brush = androidx.compose.ui.graphics.SolidColor(colors)
-                )
-            } else {
-                CardDefaults.outlinedCardBorder(true).copy(
-                    width = 1.dp,
-                    brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-                )
-            },
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                // 样式预览图标
-                Card(
-                    modifier = Modifier.size(32.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    shape = when (style) {
-                        QRCodeStyle.CIRCLE, QRCodeStyle.CIRCLE_BALL, QRCodeStyle.CIRCLE_FRAME -> CircleShape
-                        QRCodeStyle.ROUNDED, QRCodeStyle.ROUNDED_BALL, QRCodeStyle.ROUNDED_FRAME -> MaterialTheme.shapes.medium
-                        QRCodeStyle.STAR -> MaterialTheme.shapes.small
-                        else -> MaterialTheme.shapes.small
-                    }
-                ) {
-                    Box(
-                         modifier = Modifier.fillMaxSize(),
-                         contentAlignment = Alignment.Center
-                     ) {
-                         Box(
-                             modifier = Modifier
-                                 .size(16.dp)
-                                 .background(
-                                     color = colors,
-                                     shape = when (style) {
-                                         QRCodeStyle.CIRCLE, QRCodeStyle.CIRCLE_BALL, QRCodeStyle.CIRCLE_FRAME -> CircleShape
-                                         QRCodeStyle.RHOMBUS, QRCodeStyle.RHOMBUS_BALL -> MaterialTheme.shapes.small
-                                         QRCodeStyle.STAR -> MaterialTheme.shapes.extraSmall
-                                         else -> MaterialTheme.shapes.extraSmall
-                                     }
-                                 )
-                         )
-                     }
-                }
-                
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
-                
-                if (isSelected) {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = "已选择",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
-        }
-    }
-}
+            Spacer(modifier = Modifier.height(12.dp))
 
-@Composable
-private fun QRCodeDisplaySection(
-    content: String,
-    config: QRoseStyleConfig,
-    selectedStyle: QRCodeStyle,
-    onSaveClick: () -> Unit,
-    onShareClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 20.dp)
-            ) {
-                Icon(
-                    Icons.Default.QrCode,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.button_preview),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            
-            // 二维码预览卡片
-            Card(
-                modifier = Modifier.size(240.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
-                shape = MaterialTheme.shapes.large
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val qrBitmap = QRoseComposeUtils.rememberQRCode(
-                        content = content,
-                        style = selectedStyle,
-                        size = 200
-                    )
-                    
-                    Image(
-                        bitmap = qrBitmap,
-                        contentDescription = stringResource(R.string.qr_style_title),
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // 当前样式信息
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                ),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Default.Style,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "当前样式: ${getStyleDisplayName(selectedStyle)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            // 操作按钮
-            Row(
-                modifier = Modifier.fillMaxWidth(),
+            LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                FilledTonalButton(
-                    onClick = onSaveClick,
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 14.dp),
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                ) {
-                    Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        stringResource(R.string.generate_save),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
-                
-                OutlinedButton(
-                    onClick = onShareClick,
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 14.dp),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
-                        width = 1.dp,
-                        brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-                    )
-                ) {
-                    Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        stringResource(R.string.generate_share),
-                        style = MaterialTheme.typography.labelLarge
+                items(presets) { (preset, name) ->
+                    val presetConfig = when (preset) {
+                        is StylePreset.Business -> QRoseStyleConfig.BUSINESS
+                        is StylePreset.Artistic -> QRoseStyleConfig.ARTISTIC
+                        is StylePreset.Elegant -> QRoseStyleConfig.ELEGANT
+                        is StylePreset.Vibrant -> QRoseStyleConfig.VIBRANT
+                        is StylePreset.Minimal -> QRoseStyleConfig.MINIMAL
+                        is StylePreset.Rainbow -> QRoseStyleConfig.RAINBOW
+                        is StylePreset.Neon -> QRoseStyleConfig.NEON
+                        is StylePreset.Custom -> preset.config
+                    }
+
+                    StylePreviewCard(
+                        name = name,
+                        config = presetConfig,
+                        isSelected = selectedPreset == preset,
+                        onClick = { onPresetSelected(preset) }
                     )
                 }
             }
@@ -565,80 +487,9 @@ private fun QRCodeDisplaySection(
     }
 }
 
-private fun getStyleDisplayName(style: QRCodeStyle): String {
-    return when (style) {
-        QRCodeStyle.BASIC -> "基础方形"
-        QRCodeStyle.CIRCLE -> "圆形像素"
-        QRCodeStyle.ROUNDED -> "圆角样式"
-        QRCodeStyle.GRADIENT -> "渐变效果"
-        QRCodeStyle.ARTISTIC -> "艺术风格"
-        QRCodeStyle.DOT -> "点阵样式"
-        QRCodeStyle.RHOMBUS -> "菱形像素"
-        QRCodeStyle.STAR -> "星形样式"
-        QRCodeStyle.ROUNDED_VERTICAL -> "垂直圆角"
-        QRCodeStyle.ROUNDED_HORIZONTAL -> "水平圆角"
-        QRCodeStyle.CIRCLE_FRAME -> "圆形框架"
-        QRCodeStyle.ROUNDED_FRAME -> "圆角框架"
-        QRCodeStyle.CIRCLE_BALL -> "圆形眼球"
-        QRCodeStyle.ROUNDED_BALL -> "圆角眼球"
-        QRCodeStyle.RHOMBUS_BALL -> "菱形眼球"
-    }
-}
-
-@Composable
-private fun SaveConfirmDialog(
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.generate_save)) },
-        text = { Text("确定要保存这个二维码吗？") },
-        confirmButton = {
-            Button(onClick = onConfirm) {
-                Text(stringResource(R.string.button_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
-        }
-    )
-}
-
-@Composable
-private fun ShareDialog(
-    onDismiss: () -> Unit,
-    onShare: (String) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.generate_share)) },
-        text = { Text("选择分享方式") },
-        confirmButton = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = { onShare("image") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("分享图片")
-                }
-                OutlinedButton(
-                    onClick = { onShare("text") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("分享文本")
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
-        }
+private fun getBackgroundBrush(config: QRoseStyleConfig): Brush {
+    // 简化背景：直接使用纯色避免复杂渲染问题
+    return Brush.linearGradient(
+        colors = listOf(config.backgroundColor, config.backgroundColor)
     )
 }
